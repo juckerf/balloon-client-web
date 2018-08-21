@@ -294,6 +294,8 @@ var app = {
       );
     } else if(supported_office.indexOf(app.balloon.getFileExtension(app.balloon.last.name)) > -1 && !app.balloon.isMobileViewPort()) {
       app.edit(app.balloon.getCurrentNode());
+    } else if (app.balloon.isBurlFile(app.balloon.getCurrentNode())) {
+      app.balloon.handleBurl(app.balloon.getCurrentNode());
     } else if(app.balloon.isEditable(app.balloon.last.mime)) {
       app.balloon.editFile(app.balloon.getCurrentNode());
     } else if(app.balloon.isViewable(app.balloon.last.mime)) {

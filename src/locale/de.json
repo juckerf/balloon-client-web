@@ -87,6 +87,7 @@
     "new_folder": "Neuer Ordner",
     "txt_file": "Textdokument",
     "new_file": "Neue Datei",
+    "burl_file": "URL-Verknüpfung",
     "selected": "({{count}} items ausgewählt)",
     "selected_plural": "({{count}} items ausgewählt)",
     "no_nodes": "<Es wurden keine Daten gefunden>"
@@ -227,7 +228,8 @@
     "restore_to_root": "Der ursprüngliche Ordner existiert nicht mehr oder ist gelöscht, willst du die Dateien/Ordner in deinen obersten Ordner wiederherstellen?",
     "open_big_file": "Die Datei %s ist sehr gross und das öffnen kann einige Zeit in Anspruch nehmen, willst du dennoch fortfahren?",
     "close_save_file": "Willst du deine Änderungen speichern?",
-    "auto_rename_node": "Eine Datei/Ordner existiert bereits mit dem Name %s, möchtest du deine umbenenen in %s?"
+    "auto_rename_node": "Eine Datei/Ordner existiert bereits mit dem Name %s, möchtest du deine umbenenen in %s?",
+    "open_burl": "Willst du %s in einem neuen Tab öffnen?"
   },
   "events": {
     "unknown": "Unbekannt",

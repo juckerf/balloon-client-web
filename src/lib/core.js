@@ -54,6 +54,11 @@ var balloon = {
   BYTES_PER_CHUNK: 4194304,
 
   /**
+   * File extension for Burl files
+   */
+  BURL_EXTENSION: 'burl',
+
+  /**
    * API Base url
    *
    */
@@ -135,6 +140,7 @@ var balloon = {
     balloon.add_file_handlers = {
       txt: balloon.addFile,
       folder: balloon.addFolder,
+      burl: balloon.addBurl,
     };
 
     if(balloon.isInitialized()) {
@@ -2120,7 +2126,7 @@ var balloon = {
         for(var node=prev_pos; node <= last_pos; node++) {
           balloon.multiSelect(balloon.datasource._data[node]);
         }
-      }      else {
+      } else {
         balloon._shift_start = undefined;
         balloon.resetDom('multiselect');
       }
@@ -2196,11 +2202,13 @@ var balloon = {
         ['selected','properties','preview','action-bar','multiselect','view-bar',
           'history','share-collection','share-link']
       );
+    } else if (balloon.isBurlFile(balloon.getCurrentNode())) {
+      balloon.handleBurl(balloon.getCurrentNode());
     } else if(balloon.isEditable(balloon.last.mime)) {
       balloon.editFile(balloon.getCurrentNode());
     } else if(balloon.isViewable(balloon.last.mime)) {
       balloon.displayFile(balloon.getCurrentNode());
-    } else {
+    }  else {
       balloon.downloadNode(balloon.getCurrentNode());
     }
 
@@ -3416,6 +3424,27 @@ var balloon = {
       success: function(data) {
         balloon.added = data.id;
         balloon.refreshTree('/collections/children', {id: balloon.getCurrentCollectionId()});
+      },
+    });
+  },
+
+  /**
+   * Add new burl file
+   *
+   * @param string name
+   * @return void
+   */
+  addBurl: function(name) {
+    name = encodeURI(name);
+
+    balloon.xmlHttpRequest({
+      url: balloon.base+'/files?name='+name+'&'+balloon.param('collection', balloon.getCurrentCollectionId()),
+      type: 'PUT',
+      success: function(data) {
+        balloon.added = data.id;
+        balloon.refreshTree('/collections/children', {id: balloon.getCurrentCollectionId()});
+
+        balloon._editFile(data);
       },
     });
   },
@@ -4735,7 +4764,8 @@ var balloon = {
       "video/mp4": "mp4",
       "video/quicktime": "mov",
       "video/mpeg": "mpeg",
-      "audio/wav": "wav"
+      "audio/wav": "wav",
+      "application/vnd.balloon.burl": "burl"
     };
 
     if(mime in map) {
@@ -4833,7 +4863,8 @@ var balloon = {
       wav:  'gr-i-file-music',
       flac:  'gr-i-file-music',
       ogg:  'gr-i-file-music',
-      acc:  'gr-i-file-music'
+      acc:  'gr-i-file-music',
+      burl: 'gr-i-hyperlink'
     };
 
     if(extension in map) {
@@ -4947,6 +4978,44 @@ var balloon = {
     $div.find('input[type=submit]').off('click').on('click', function(e) {
       balloon.saveFile(node, $textarea.val());
     });
+  },
+
+
+  /**
+   * Handle Burl file
+   *
+   * @param  object node
+   * @return void
+   */
+  handleBurl: function(node) {
+    balloon.xmlHttpRequest({
+      url: balloon.base+'/files/content',
+      type: 'GET',
+      data: {
+        id: balloon.id(node),
+      },
+      dataType: 'text',
+      success: function (data) {
+        try {
+          let url = new URL(data);
+          var msg  = i18next.t('prompt.open_burl', url.href);
+          balloon.promptConfirm(msg, '_handleBurl', [url]);
+        } catch (error) {
+          balloon.displayError(error);
+        }
+      }
+    });
+  },
+
+
+  /**
+   * Handle Burl file
+   *
+   * @param  object node
+   * @return void
+   */
+  _handleBurl: function(url) {
+    window.open(url.href, '_blank');
   },
 
 
@@ -5173,6 +5242,16 @@ var balloon = {
     }
 
     return i18next.t('time.second', {count: seconds});
+  },
+
+  /**
+   * Check if file is .burl
+   *
+   * @param   object node
+   * @return  bool
+   */
+  isBurlFile: function(node) {
+    return balloon.BURL_EXTENSION === balloon.getFileExtension(node);
   },
 
 
