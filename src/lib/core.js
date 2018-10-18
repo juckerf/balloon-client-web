@@ -5672,6 +5672,23 @@ var balloon = {
     return false;
   },
 
+  /**
+   * Get access ticket for node
+   *
+   * @param   object|array node
+   * @param   function callback
+   * @return  void
+   */
+  getAccessTicket: function(node, callback) {
+    balloon.xmlHttpRequest({
+      url: balloon.base+'/nodes/ticket?' + balloon.param('id', balloon.id(node)),
+      type: 'POST',
+      dataType: 'json',
+      success: function(body) {
+        callback(node, body.ticket);
+      },
+    });
+  },
 
   /**
    * Download node
@@ -5680,6 +5697,16 @@ var balloon = {
    * @return  void
    */
   downloadNode: function(node) {
+    if(login.adapter === 'oidc') {
+      balloon.getAccessTicket(node, balloon._downloadNode);
+    } else {
+      balloon._downloadNode(node);
+    }
+  },
+
+  _downloadNode: function(node, accessTicket) {
+    accessTicket = accessTicket ? '&ticket=' + accessTicket : '';
+
     var $iframe = $("#fs-fetch-file");
     var id = balloon.id(node);
 
@@ -5687,11 +5714,7 @@ var balloon = {
       name += '&name=selected.zip';
     }
 
-    var url = balloon.base+'/nodes/content?'+balloon.param('id', id)+''+name;
-
-    if(typeof(login) === 'object' && !login.getAccessToken()) {
-      url += '&access_token='+login.getAccessToken();
-    }
+    var url = balloon.base+'/nodes/content?'+balloon.param('id', id)+''+name+''+accessTicket;
 
     if((node.directory == true || !balloon.isMobileViewPort()) && !balloon.isiOS()) {
       url += "&download=true";
@@ -5700,7 +5723,6 @@ var balloon = {
       window.location.href = url;
     }
   },
-
 
   /**
    * Extended search popup
@@ -6577,14 +6599,31 @@ var balloon = {
     });
   },
 
+  /**
+   * Display file
+   *
+   * @param   object node
+   * @param   string|null accessTicket
+   * @return  void
+   */
+  displayFile: function(node) {
+    if(login.adapter === 'oidc') {
+      balloon.getAccessTicket(node, balloon._displayFile);
+    } else {
+      balloon._displayFile(node);
+    }
+  },
 
   /**
    * Display file
    *
    * @param   object node
+   * @param   string|null accessTicket
    * @return  void
    */
-  displayFile: function(node) {
+  _displayFile: function(node, accessTicket) {
+    accessTicket = accessTicket ? '&ticket=' + accessTicket : '';
+
     var $div = $('#fs-display-live');
     $('#fs-display-left').hide();
     $('#fs-display-right').hide();
@@ -6609,10 +6648,7 @@ var balloon = {
       $k_display = $div.kendoBalloonWindow(options).data("kendoBalloonWindow").open().maximize();
     }
 
-    var url = balloon.base+'/files/content?id='+node.id+'&hash='+node.hash;
-    if(typeof(login) === 'object' && !login.getAccessToken()) {
-      url += '&access_token='+login.getAccessToken();
-    }
+    var url = balloon.base+'/files/content?id='+node.id+'&hash='+node.hash+''+accessTicket;;
 
     var $div_content = $('#fs-display-content').html('').hide(),
       $element,
